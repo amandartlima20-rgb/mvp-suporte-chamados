@@ -3,7 +3,7 @@
 Trabalho final da disciplina (MVP), Departamento de Engenharia de Produção — Universidade de Brasília.
 Pipeline de dados em nuvem (Databricks) sobre chamados de suporte de uma empresa de TI.
 
-**Autora:** Amanda
+**Autora:** Amanda Ribeiro Teixeira Lima — matrícula 190083786
 
 ## Sumário
 1. [Objetivo](#1-objetivo)
@@ -147,7 +147,48 @@ Catálogo de Dados (tipos, domínios e linhagem): [`catalogo/catalogo_dados.md`]
 ---
 
 ## 4. Carga
-*Em construção.*
+
+Notebook: [`notebooks/02_carga.py`](notebooks/02_carga.py) — explicação célula a célula em [`notebooks/02_carga_explicacao.md`](notebooks/02_carga_explicacao.md).
+
+### Pipeline
+`incidentes_bronze` (bruto, 1 linha por evento) → `incidentes_prata` (tratado, 1 linha por evento) →
+`fato_chamado` + `dim_prioridade`, `dim_categoria`, `dim_canal`, `dim_data` (modelo estrela, 1 linha por chamado).
+Todas as tabelas são Delta, no schema `workspace.suporte` do Databricks.
+
+### Regras de negócio aplicadas na transformação
+| Regra | Descrição |
+|---|---|
+| R1 | O texto `?` (informação ausente na fonte) é convertido em nulo em todas as colunas |
+| R2 | Datas convertidas de texto (`d/M/yyyy H:mm`) para data e hora |
+| R3 | Contadores (`reassignment_count`, `reopen_count`, `sys_mod_count`) convertidos para inteiro |
+| R4 | Campos verdadeiro/falso (`active`, `made_sla`, `knowledge`, `u_priority_confirmation`) convertidos para booleano |
+| R5 | Prioridade, categoria, canal e data de resolução vêm da última atualização do chamado (maior `sys_mod_count`; empate pelo `sys_updated_at` mais recente) |
+| R6 | Primeiro atendimento (aproximação): menor `sys_updated_at` entre os eventos com estado diferente de "New" |
+| R7 | Pessoas e grupos envolvidos: contagem de valores distintos não nulos de `assigned_to` e `assignment_group` |
+| R8 | Reatribuições, reaberturas e atualizações: maior valor registrado entre os eventos do chamado |
+| R9 | Tempos em horas: diferença entre as datas, em segundos, dividida por 3.600 |
+| R10 | Resolvido: chamado com data de resolução preenchida |
+| R11 | Reaberto: chamado com pelo menos uma reabertura |
+
+### Conferência da carga
+| Verificação | Resultado |
+|---|---|
+| Linhas na `fato_chamado` | 24.918 |
+| Chamados distintos na fato | 24.918 (nenhum repetido) |
+| Chamados distintos na tabela bruta | 24.918 (nenhum perdido) |
+| Chamados sem prioridade | 0 |
+| Chamados sem data de abertura | 0 |
+
+A carga preservou todos os chamados da fonte, com exatamente uma linha por chamado e as chaves
+obrigatórias preenchidas.
+
+### Evidências
+- Conferência da carga (célula 11):
+  ![Conferência da carga](evidencias/carga_conferencia.png)
+- Consulta SQL usando o modelo estrela (fato + dimensão de prioridade, célula 12):
+  ![Consulta SQL no modelo estrela](evidencias/carga_consulta_sql_estrela.png)
+
+---
 
 ## 5. Análise
 ### 5.1 Qualidade dos dados

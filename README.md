@@ -1,6 +1,6 @@
 # MVP — O que faz um chamado de suporte demorar?
 
-Trabalho final da disciplina (MVP), Departamento de Engenharia de Produção — Universidade de Brasília.
+Trabalho da disciplina PSP8 (MVP), Departamento de Engenharia de Produção — Universidade de Brasília.
 Pipeline de dados em nuvem (Databricks) sobre chamados de suporte de uma empresa de TI.
 
 **Autora:** Amanda Ribeiro Teixeira Lima — matrícula 190083786

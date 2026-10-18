@@ -1,70 +1,82 @@
 # Catálogo de Dados
 
-**Origem de todas as tabelas:** base *Incident management process enriched event log* (UCI, CC BY 4.0),
-arquivo `incident_event_log.csv`, coletado em 14/10/2026 às 21:45, carregado na tabela bruta
-`workspace.suporte.incidentes_bronze`.
+O catálogo segue o conteúdo mínimo exigido pelo documento da disciplina: **Nome do atributo, Tipo,
+Descrição, Domínio, Obrigatoriedade e Linhagem**.
 
-Os domínios abaixo são os **valores esperados**. A análise de qualidade vai conferir se os dados reais
-respeitam esses limites e registrar o que não respeitar.
+**Fonte comum a todas as tabelas:** base *Incident management process enriched event log*, do UCI Machine
+Learning Repository (licença CC BY 4.0), arquivo `incident_event_log.csv`, **extraído em 14/10/2026 às
+21:45**. Na nuvem, os dados passam por `workspace.default.incident_event_log` (upload) →
+`workspace.suporte.incidentes_bronze` (cópia fiel) → `workspace.suporte.incidentes_prata` (eventos
+tratados) → tabelas do modelo estrela abaixo.
+
+Os domínios são os **valores esperados**; a análise de qualidade confere se os dados reais os respeitam.
+
+---
 
 ## `fato_chamado` — uma linha por chamado (esperado: 24.918 linhas)
 
-| Atributo | Tipo | Descrição | Domínio esperado | Nulo? | Linhagem |
+| Nome do atributo | Tipo | Descrição | Domínio | Obrigatoriedade | Linhagem |
 |---|---|---|---|---|---|
-| `id_chamado` | texto | Identificador único do chamado | Formato `INC` + 7 dígitos (ex.: INC0000045); único na tabela | Não | `number` |
-| `id_prioridade` | numérico (inteiro) | Chave para `dim_prioridade` | 1 a 4 | Não | `priority` da última atualização |
-| `id_categoria` | numérico (inteiro) | Chave para `dim_categoria` | Uma chave existente em `dim_categoria` | Sim: categoria não informada | `category` da última atualização |
-| `id_canal` | numérico (inteiro) | Chave para `dim_canal` | Uma chave existente em `dim_canal` | Sim: canal não informado | `contact_type` da última atualização |
-| `id_data_abertura` | numérico (inteiro) | Chave para `dim_data`, no formato AAAAMMDD | Datas entre 2016 e 2017 | Não | `opened_at` convertido |
-| `data_hora_abertura` | data | Momento em que o chamado foi aberto | 2016 a 2017 | Não | `opened_at` convertido de `d/M/yyyy HH:mm` |
-| `data_hora_primeiro_atendimento` | data | Primeiro momento em que o chamado saiu do estado "New" (aproximação) | Maior ou igual à abertura | Sim: chamado nunca saiu de "New" | Menor `sys_updated_at` com `incident_state` diferente de "New" |
-| `data_hora_resolucao` | data | Momento em que o chamado foi resolvido | Maior ou igual à abertura | Sim: chamado não resolvido | `resolved_at` da última atualização, convertido |
-| `horas_ate_primeiro_atendimento` | numérico (decimal) | Horas entre a abertura e o primeiro atendimento | 0 ou mais; valores muito altos serão investigados | Sim: sem primeiro atendimento | `data_hora_primeiro_atendimento` − `data_hora_abertura` |
-| `horas_ate_resolucao` | numérico (decimal) | Horas entre a abertura e a resolução | 0 ou mais; valores muito altos serão investigados | Sim: não resolvido | `data_hora_resolucao` − `data_hora_abertura` |
-| `foi_resolvido` | booleano | Se o chamado chegou a ser resolvido | Verdadeiro / Falso | Não | Verdadeiro quando `data_hora_resolucao` está preenchida |
-| `qtd_reaberturas` | numérico (inteiro) | Quantas vezes o chamado foi reaberto após resolvido | 0 ou mais | Não | Maior `reopen_count` do chamado |
-| `foi_reaberto` | booleano | Se o chamado foi reaberto ao menos uma vez | Verdadeiro / Falso | Não | `qtd_reaberturas` > 0 |
-| `qtd_reatribuicoes` | numérico (inteiro) | Quantas vezes o chamado foi repassado para outro grupo ou pessoa | 0 ou mais | Não | Maior `reassignment_count` do chamado |
-| `qtd_pessoas_envolvidas` | numérico (inteiro) | Pessoas diferentes que foram responsáveis pelo chamado | 0 ou mais | Não | Contagem distinta de `assigned_to` não nulo, em todos os eventos |
-| `qtd_grupos_envolvidos` | numérico (inteiro) | Grupos de atendimento diferentes que trataram o chamado | 0 ou mais | Não | Contagem distinta de `assignment_group` não nulo, em todos os eventos |
-| `qtd_atualizacoes` | numérico (inteiro) | Quantas vezes o chamado foi atualizado no sistema | 0 ou mais | Não | Maior `sys_mod_count` do chamado |
+| `id_chamado` | Texto | Identificador único do chamado | `INC` + 7 dígitos (ex.: INC0000045); único na tabela | Obrigatório | Origem: coluna `number` do CSV (extraído em 14/10/2026). Transformações: remoção de espaços; agrupamento das linhas de eventos em uma por chamado |
+| `id_prioridade` | Numérico | Chave da prioridade do chamado (liga à `dim_prioridade`) | 1 a 4 | Obrigatório | Origem: coluna `priority` (extraído em 14/10/2026). Transformações: valor da última atualização do chamado; troca do texto pela chave da `dim_prioridade` |
+| `id_categoria` | Numérico | Chave da categoria (liga à `dim_categoria`) | Uma chave existente em `dim_categoria` | Opcional: nulo significa que o chamado não teve categoria informada | Origem: coluna `category` (extraído em 14/10/2026). Transformações: `?` → nulo; valor da última atualização; troca pela chave da `dim_categoria` |
+| `id_canal` | Numérico | Chave do canal de abertura (liga à `dim_canal`) | Uma chave existente em `dim_canal` | Opcional: nulo significa canal não informado | Origem: coluna `contact_type` (extraído em 14/10/2026). Transformações: `?` → nulo; valor da última atualização; troca pela chave da `dim_canal` |
+| `id_data_abertura` | Numérico | Chave da data de abertura (liga à `dim_data`), no formato AAAAMMDD | 20160101 a 20171231 | Obrigatório | Origem: coluna `opened_at` (extraído em 14/10/2026). Transformações: texto → data; formatação AAAAMMDD |
+| `data_hora_abertura` | Data | Momento em que o chamado foi aberto | 01/01/2016 a 31/12/2017 | Obrigatório | Origem: coluna `opened_at` (extraído em 14/10/2026). Transformações: texto `d/M/yyyy H:mm` → data e hora |
+| `data_hora_primeiro_atendimento` | Data | Primeiro momento em que o chamado saiu do estado "New" (aproximação do primeiro atendimento) | Maior ou igual a `data_hora_abertura` | Opcional: nulo significa que o chamado nunca saiu do estado "New" | Origem: colunas `sys_updated_at` e `incident_state` (extraído em 14/10/2026). Transformações: texto → data; menor `sys_updated_at` entre os eventos com estado válido diferente de "New" (o estado inválido `-100` é ignorado) |
+| `data_hora_resolucao` | Data | Momento em que o chamado foi resolvido | Maior ou igual a `data_hora_abertura` | Opcional: nulo significa que a data de resolução não foi registrada na fonte (1.556 chamados fechados sem essa data) | Origem: coluna `resolved_at` (extraído em 14/10/2026). Transformações: `?` → nulo; texto → data; valor da última atualização |
+| `horas_ate_primeiro_atendimento` | Numérico | Horas entre a abertura e o primeiro atendimento | Mínimo 0; máximo esperado 8.760 (1 ano); acima disso será investigado | Opcional: nulo quando não há primeiro atendimento ou quando o tempo calculado é negativo (R13) | Calculado: (`data_hora_primeiro_atendimento` − `data_hora_abertura`) em horas, 2 casas decimais; valores negativos viram nulo |
+| `horas_ate_resolucao` | Numérico | Horas entre a abertura e a resolução | Mínimo 0; máximo esperado 8.760 (1 ano); acima disso será investigado | Opcional: nulo quando a data de resolução não foi registrada ou o tempo é negativo (R13) | Calculado: (`data_hora_resolucao` − `data_hora_abertura`) em horas, 2 casas decimais; valores negativos viram nulo |
+| `foi_resolvido` | Booleano | Se o chamado chegou a ser resolvido | Verdadeiro / Falso | Obrigatório | Origem: coluna `incident_state` (extraído em 14/10/2026). Calculado: verdadeiro quando o estado final do chamado é "Resolved" ou "Closed" |
+| `qtd_reaberturas` | Numérico | Quantas vezes o chamado foi reaberto depois de resolvido | Mínimo 0; máximo esperado 10 | Obrigatório | Origem: coluna `reopen_count` (extraído em 14/10/2026). Transformações: texto → inteiro; maior valor entre os eventos do chamado |
+| `foi_reaberto` | Booleano | Se o chamado foi reaberto ao menos uma vez | Verdadeiro / Falso | Obrigatório | Calculado: `qtd_reaberturas` > 0 |
+| `qtd_reatribuicoes` | Numérico | Quantas vezes o chamado foi repassado para outro grupo ou pessoa | Mínimo 0; máximo esperado 30 | Obrigatório | Origem: coluna `reassignment_count` (extraído em 14/10/2026). Transformações: texto → inteiro; maior valor entre os eventos do chamado |
+| `qtd_pessoas_envolvidas` | Numérico | Quantas pessoas diferentes foram responsáveis pelo chamado | Mínimo 0; máximo esperado 30 | Obrigatório (0 significa que nunca houve responsável atribuído) | Origem: coluna `assigned_to` (extraído em 14/10/2026). Transformações: `?` → nulo; contagem de valores distintos não nulos entre os eventos |
+| `qtd_grupos_envolvidos` | Numérico | Quantos grupos de atendimento diferentes trataram o chamado | Mínimo 0; máximo esperado 30 | Obrigatório (0 significa que nunca houve grupo atribuído) | Origem: coluna `assignment_group` (extraído em 14/10/2026). Transformações: `?` → nulo; contagem de valores distintos não nulos entre os eventos |
+| `qtd_atualizacoes` | Numérico | Quantas vezes o chamado foi modificado no sistema | Mínimo 0; máximo esperado 150 | Obrigatório | Origem: coluna `sys_mod_count` (extraído em 14/10/2026). Transformações: texto → inteiro; maior valor entre os eventos do chamado |
 
 ## `dim_prioridade`
 
-| Atributo | Tipo | Descrição | Domínio esperado | Nulo? | Linhagem |
+| Nome do atributo | Tipo | Descrição | Domínio | Obrigatoriedade | Linhagem |
 |---|---|---|---|---|---|
-| `id_prioridade` | numérico (inteiro) | Chave da prioridade | 1 a 4 | Não | Número no início de `priority` |
-| `prioridade` | categórico | Nome da prioridade | 1 - Critical, 2 - High, 3 - Moderate, 4 - Low | Não | `priority` |
-| `nivel` | numérico (inteiro) | Nível para ordenação (1 = mais urgente) | 1 a 4 | Não | Número no início de `priority` |
+| `id_prioridade` | Numérico | Chave da prioridade | 1 a 4 | Obrigatório | Origem: coluna `priority` (extraído em 14/10/2026). Transformação: número antes do " - " |
+| `prioridade` | Categórico | Nome da prioridade | 1 - Critical, 2 - High, 3 - Moderate, 4 - Low | Obrigatório | Origem: coluna `priority` (extraído em 14/10/2026). Transformação: valores distintos |
+| `nivel` | Numérico | Nível para ordenação (1 = mais urgente) | 1 a 4 | Obrigatório | Origem: coluna `priority` (extraído em 14/10/2026). Transformação: número antes do " - " |
 
 ## `dim_categoria`
 
-| Atributo | Tipo | Descrição | Domínio esperado | Nulo? | Linhagem |
+| Nome do atributo | Tipo | Descrição | Domínio | Obrigatoriedade | Linhagem |
 |---|---|---|---|---|---|
-| `id_categoria` | numérico (inteiro) | Chave da categoria | 1 ou mais, sem repetição | Não | Gerada na carga |
-| `categoria` | categórico | Categoria do chamado, anonimizada na fonte | Textos no formato "Category N" | Não | `category`, sem os valores `?` |
+| `id_categoria` | Numérico | Chave da categoria | 1 até o número de categorias distintas, sem repetição | Obrigatório | Gerada na carga: numeração sequencial em ordem alfabética da categoria |
+| `categoria` | Categórico | Categoria do chamado, anonimizada na fonte | Textos no formato "Category N" | Obrigatório | Origem: coluna `category` (extraído em 14/10/2026). Transformações: `?` descartado; valores distintos |
 
 ## `dim_canal`
 
-| Atributo | Tipo | Descrição | Domínio esperado | Nulo? | Linhagem |
+| Nome do atributo | Tipo | Descrição | Domínio | Obrigatoriedade | Linhagem |
 |---|---|---|---|---|---|
-| `id_canal` | numérico (inteiro) | Chave do canal | 1 ou mais, sem repetição | Não | Gerada na carga |
-| `canal` | categórico | Canal de abertura do chamado | Phone, Email, Self service, IVR, Direct opening | Não | `contact_type` |
+| `id_canal` | Numérico | Chave do canal | 1 até o número de canais distintos, sem repetição | Obrigatório | Gerada na carga: numeração sequencial em ordem alfabética do canal |
+| `canal` | Categórico | Canal de abertura do chamado | Direct opening, Email, IVR, Phone, Self service | Obrigatório | Origem: coluna `contact_type` (extraído em 14/10/2026). Transformações: `?` descartado; valores distintos |
 
 ## `dim_data`
 
-| Atributo | Tipo | Descrição | Domínio esperado | Nulo? | Linhagem |
+| Nome do atributo | Tipo | Descrição | Domínio | Obrigatoriedade | Linhagem |
 |---|---|---|---|---|---|
-| `id_data` | numérico (inteiro) | Chave no formato AAAAMMDD | Datas de abertura existentes na base | Não | Gerada a partir de `opened_at` |
-| `data` | data | Dia de abertura | 2016 a 2017 | Não | `opened_at` |
-| `ano` | numérico (inteiro) | Ano | 2016 a 2017 | Não | Extraído de `data` |
-| `mes` | numérico (inteiro) | Mês | 1 a 12 | Não | Extraído de `data` |
-| `dia` | numérico (inteiro) | Dia do mês | 1 a 31 | Não | Extraído de `data` |
-| `dia_semana` | categórico | Dia da semana | Segunda a Domingo | Não | Extraído de `data` |
+| `id_data` | Numérico | Chave no formato AAAAMMDD | 20160101 a 20171231 | Obrigatório | Gerada na carga a partir de `data` |
+| `data` | Data | Dia de abertura de chamados | 01/01/2016 a 31/12/2017 | Obrigatório | Origem: coluna `opened_at` (extraído em 14/10/2026). Transformações: texto → data; valores distintos |
+| `ano` | Numérico | Ano | 2016 a 2017 | Obrigatório | Calculado: ano de `data` |
+| `mes` | Numérico | Mês | 1 a 12 | Obrigatório | Calculado: mês de `data` |
+| `dia` | Numérico | Dia do mês | 1 a 31 | Obrigatório | Calculado: dia de `data` |
+| `dia_semana` | Categórico | Dia da semana | Domingo, Segunda, Terça, Quarta, Quinta, Sexta, Sábado | Obrigatório | Calculado: dia da semana de `data` |
 
-## Transformações aplicadas (resumo da linhagem)
-1. O texto `?` vira nulo em todas as colunas.
-2. As datas são convertidas de texto (`d/M/yyyy HH:mm`) para data e hora.
-3. As várias linhas de cada chamado são agrupadas em uma só, pela coluna `number`.
-4. Atributos descritivos (prioridade, categoria, canal) vêm da última atualização do chamado (maior `sys_mod_count`).
-5. As medidas de tempo e de contagem são calculadas conforme a coluna "Linhagem" acima.
+---
+
+## Transformações aplicadas (resumo)
+1. **R1:** o texto `?` vira nulo em todas as colunas.
+2. **R2:** datas convertidas de texto (`d/M/yyyy H:mm`) para data e hora.
+3. **R3:** contadores convertidos de texto para inteiro.
+4. **R5:** atributos descritivos (prioridade, categoria, canal, resolução) vêm da última atualização do chamado (maior `sys_mod_count`).
+5. **R13:** tempos negativos (impossíveis) viram nulo.
+6. **R12:** eventos idênticos em todas as colunas são mantidos uma única vez (deduplicação).
+7. **R6 a R11:** medidas de tempo e contagem calculadas conforme a coluna "Linhagem".
+
+As regras estão numeradas igual ao notebook `02_carga.py`, onde cada uma é aplicada.

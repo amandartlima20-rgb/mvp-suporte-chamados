@@ -1,0 +1,48 @@
+dimensao,verificacao,qtd_problemas,total,pct
+Completude,Ausentes em number (eventos),0,141712,0
+Completude,Ausentes em opened_at (eventos),0,141712,0
+Completude,Ausentes em resolved_at (eventos),3141,141712,2.22
+Completude,Ausentes em priority (eventos),0,141712,0
+Completude,Ausentes em assigned_to (eventos),27496,141712,19.4
+Completude,Ausentes em assignment_group (eventos),14213,141712,10.03
+Completude,Ausentes em reassignment_count (eventos),0,141712,0
+Completude,Ausentes em reopen_count (eventos),0,141712,0
+Completude,Ausentes em category (eventos),78,141712,0.06
+Completude,Ausentes em contact_type (eventos),0,141712,0
+Completude,Falhas de conversão (todas as colunas),0,5101632,0
+Unicidade,Eventos idênticos na fonte,0,141712,0
+Unicidade,id_chamado repetido na fato,0,24918,0
+Unicidade,Chave repetida em dim_prioridade,0,4,0
+Unicidade,Chave repetida em dim_categoria,0,52,0
+Unicidade,Chave repetida em dim_canal,0,5,0
+Unicidade,Chave repetida em dim_data,0,207,0
+Conformidade,priority fora do domínio,0,141712,0
+Conformidade,impact fora do domínio,0,141712,0
+Conformidade,urgency fora do domínio,0,141712,0
+Conformidade,contact_type fora do domínio,0,141712,0
+Conformidade,incident_state fora do domínio,5,141712,0
+Conformidade,number fora do formato ^INC[0-9]{7}$,0,141712,0
+Conformidade,category fora do formato ^Category [0-9]+$,0,141712,0
+Conformidade,assignment_group fora do formato ^Group [0-9]+$,0,141712,0
+Conformidade,assigned_to fora do formato ^Resolver [0-9]+$,0,141712,0
+Consistência,Resolvido antes de abrir,0,24918,0
+Consistência,Fechado antes de resolver,0,24918,0
+Consistência,Primeiro atendimento antes da abertura,2,24918,0.01
+Consistência,Estado final Resolved/Closed sem data de resolução,1556,24918,6.24
+Consistência,"Com data de resolução, mas estado final não resolvido",0,24918,0
+Consistência,Data de abertura diferente entre eventos do mesmo chamado,0,24918,0
+Acurácia,horas_ate_primeiro_atendimento abaixo de 0,0,24918,0
+Acurácia,horas_ate_primeiro_atendimento acima de 8760,0,24918,0
+Acurácia,horas_ate_resolucao abaixo de 0,0,24918,0
+Acurácia,horas_ate_resolucao acima de 8760,0,24918,0
+Acurácia,qtd_reaberturas abaixo de 0,0,24918,0
+Acurácia,qtd_reaberturas acima de 10,0,24918,0
+Acurácia,qtd_reatribuicoes abaixo de 0,0,24918,0
+Acurácia,qtd_reatribuicoes acima de 30,0,24918,0
+Acurácia,qtd_pessoas_envolvidas abaixo de 0,0,24918,0
+Acurácia,qtd_pessoas_envolvidas acima de 30,0,24918,0
+Acurácia,qtd_grupos_envolvidos abaixo de 0,0,24918,0
+Acurácia,qtd_grupos_envolvidos acima de 30,0,24918,0
+Acurácia,qtd_atualizacoes abaixo de 0,0,24918,0
+Acurácia,qtd_atualizacoes acima de 150,0,24918,0
+Atualidade,Abertura fora de 2016-2017,0,24918,0

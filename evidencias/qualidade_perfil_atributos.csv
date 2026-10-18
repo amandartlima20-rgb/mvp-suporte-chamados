@@ -1,0 +1,54 @@
+tabela,atributo,tipo,preenchidos,distintos,minimo,maximo
+incidentes_prata,number,string,141712,24918,INC0000045,INC0121064
+incidentes_prata,incident_state,string,141712,9,-100,Resolved
+incidentes_prata,active,boolean,141712,2,false,true
+incidentes_prata,reassignment_count,int,141712,28,0,27
+incidentes_prata,reopen_count,int,141712,9,0,8
+incidentes_prata,sys_mod_count,int,141712,115,0,129
+incidentes_prata,made_sla,boolean,141712,2,false,true
+incidentes_prata,caller_id,string,141683,5244,Caller 10,Caller 999
+incidentes_prata,opened_by,string,136877,207,Opened by  10,Opened by  94
+incidentes_prata,opened_at,timestamp,141712,19849,2016-02-29 01:16:00,2017-02-16 14:17:00
+incidentes_prata,sys_created_by,string,88636,185,Created by 1,Created by 99
+incidentes_prata,sys_created_at,timestamp,88636,11552,2016-02-29 01:23:00,2017-01-27 16:59:00
+incidentes_prata,sys_updated_by,string,141712,846,Updated by 1,Updated by 996
+incidentes_prata,sys_updated_at,timestamp,141712,50664,2016-02-29 01:23:00,2017-02-18 15:00:00
+incidentes_prata,contact_type,string,141712,5,Direct opening,Self service
+incidentes_prata,location,string,141636,224,Location 10,Location 99
+incidentes_prata,category,string,141634,58,Category 10,Category 9
+incidentes_prata,subcategory,string,141601,254,Subcategory 10,Subcategory 99
+incidentes_prata,u_symptom,string,108748,525,Symptom 10,Symptom 99
+incidentes_prata,cmdb_ci,string,445,50,cmdb_ci 10,cmdb_ci 9
+incidentes_prata,impact,string,141712,3,1 - High,3 - Low
+incidentes_prata,urgency,string,141712,3,1 - High,3 - Low
+incidentes_prata,priority,string,141712,4,1 - Critical,4 - Low
+incidentes_prata,assignment_group,string,127499,78,Group 10,Group 9
+incidentes_prata,assigned_to,string,114216,234,Resolver 10,Resolver 99
+incidentes_prata,knowledge,boolean,141712,2,false,true
+incidentes_prata,u_priority_confirmation,boolean,141712,2,false,true
+incidentes_prata,notify,string,141712,2,Do Not Notify,Send Email
+incidentes_prata,problem_id,string,2295,252,Problem ID  10,Problem ID  99
+incidentes_prata,rfc,string,991,181,CHG0000047,CHG0003516
+incidentes_prata,vendor,string,244,4,Vendor 1,code 8s
+incidentes_prata,caused_by,string,23,3,CHG0000097,CHG0001327
+incidentes_prata,closed_code,string,140998,17,code 1,code 9
+incidentes_prata,resolved_by,string,141486,216,Resolved by 10,Resolved by 99
+incidentes_prata,resolved_at,timestamp,138571,18505,2016-02-29 09:04:00,2017-02-17 00:47:00
+incidentes_prata,closed_at,timestamp,141712,2707,2016-02-29 17:47:00,2017-02-18 15:00:00
+fato_chamado,id_chamado,string,24918,24918,INC0000045,INC0121064
+fato_chamado,id_prioridade,int,24918,4,1,4
+fato_chamado,id_categoria,int,24911,52,1,52
+fato_chamado,id_canal,int,24918,5,1,5
+fato_chamado,id_data_abertura,int,24918,207,20160229,20170216
+fato_chamado,data_hora_abertura,timestamp,24918,19849,2016-02-29 01:16:00,2017-02-16 14:17:00
+fato_chamado,data_hora_primeiro_atendimento,timestamp,24918,19152,2016-02-29 05:30:00,2017-02-16 14:17:00
+fato_chamado,data_hora_resolucao,timestamp,23362,18505,2016-02-29 09:04:00,2017-02-17 00:47:00
+fato_chamado,horas_ate_primeiro_atendimento,double,24918,5223,-2.45,5885.9
+fato_chamado,horas_ate_resolucao,double,23362,9694,0.0,8070.17
+fato_chamado,foi_resolvido,boolean,24918,2,false,true
+fato_chamado,qtd_reaberturas,int,24918,7,0,8
+fato_chamado,foi_reaberto,boolean,24918,2,false,true
+fato_chamado,qtd_reatribuicoes,int,24918,22,0,27
+fato_chamado,qtd_pessoas_envolvidas,bigint,24918,7,0,6
+fato_chamado,qtd_grupos_envolvidos,bigint,24918,9,0,8
+fato_chamado,qtd_atualizacoes,int,24918,103,1,129

@@ -1,0 +1,6 @@
+prioridade,chamados,media_horas,mediana_horas,p90_horas,mediana_dias
+1 - Critical,270,266.1,79.1,616.4,3.3
+2 - High,408,152.5,36.4,381.6,1.5
+3 - Moderate,22010,174.4,21.5,372.5,0.9
+4 - Low,674,283.2,5,503.1,0.2
+Todas,23362,178.2,22.1,381.3,0.9

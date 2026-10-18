@@ -17,6 +17,17 @@
 # MAGIC `incidentes_bronze` (bruto, 1 linha por evento) → `incidentes_prata` (tratado, 1 linha por evento) → `fato_chamado` + `dim_*` (modelo estrela, 1 linha por chamado)
 # MAGIC
 # MAGIC Cada **regra de negócio** aplicada está numerada (R1, R2, ...) e explicada na célula onde acontece.
+# MAGIC Agrupadas pelos tipos citados no documento da disciplina:
+# MAGIC
+# MAGIC | Tipo de regra | Regras |
+# MAGIC |---|---|
+# MAGIC | Tratamento de ausentes e inválidos | R1 (`?` vira nulo), R6 (estado `-100` ignorado), R13 (tempos negativos viram nulo) |
+# MAGIC | Conversão de tipos e de unidade | R2 (texto → data), R3 (texto → inteiro), R4 (texto → booleano), R9 (segundos → horas) |
+# MAGIC | Deduplicação | R12 (eventos idênticos removidos), R5 (várias linhas de evento → uma linha por chamado) |
+# MAGIC | Padronização de chaves | R1 (espaços removidos de `number`), chaves numéricas das dimensões, chave de data AAAAMMDD |
+# MAGIC | Junção e conciliação | Junção do estado final com as medidas (célula 8), junção da fato com as dimensões (célula 10), conciliação bronze x fato (célula 11) |
+# MAGIC
+# MAGIC Este notebook é a segunda tarefa do **Job** do Databricks que executa o pipeline (01 → 02).
 # MAGIC Rode as células na ordem.
 
 # COMMAND ----------
@@ -122,6 +133,27 @@ df.printSchema()
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ## Célula 4b - Deduplicação de eventos idênticos
+# MAGIC
+# MAGIC **R12 - Linhas de evento repetidas são removidas.** Se duas linhas forem idênticas em todas as
+# MAGIC colunas, elas representam o mesmo evento registrado duas vezes, e manter as duas distorceria as
+# MAGIC contagens. `dropDuplicates()` mantém só uma cópia de cada linha. O número de linhas removidas fica
+# MAGIC guardado para a conferência da célula 11 (pode ser zero, o que também é um resultado válido).
+
+# COMMAND ----------
+
+linhas_antes = df.count()
+df = df.dropDuplicates()          # remove linhas 100% iguais, mantendo uma de cada
+linhas_depois = df.count()
+eventos_duplicados_removidos = linhas_antes - linhas_depois
+
+print("Linhas antes:", linhas_antes)
+print("Linhas depois:", linhas_depois)
+print("Eventos duplicados removidos:", eventos_duplicados_removidos)
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## Célula 5 - Carga da camada prata (eventos tratados)
 # MAGIC
 # MAGIC Gravamos os eventos já limpos na tabela `incidentes_prata`. Ela continua com **uma linha por
@@ -168,6 +200,7 @@ ultimo_evento = (
     .filter(F.col("ordem") == 1)
     .select(
         F.col("number").alias("id_chamado"),
+        F.col("incident_state").alias("estado_final"),
         F.col("priority").alias("prioridade"),
         F.col("category").alias("categoria"),
         F.col("contact_type").alias("canal"),
@@ -185,9 +218,10 @@ print("Chamados (uma linha por chamado):", ultimo_evento.count())
 # MAGIC
 # MAGIC Algumas medidas precisam olhar **todas** as linhas do chamado, não só a última:
 # MAGIC
-# MAGIC - **R6 - Primeiro atendimento (aproximação):** o primeiro momento (`sys_updated_at`) em que o estado
-# MAGIC   do chamado é diferente de "New". A base não tem a data exata do primeiro atendimento, por isso
-# MAGIC   usamos essa aproximação, registrada como limitação do trabalho.
+# MAGIC - **R6 - Primeiro atendimento (aproximação):** o primeiro momento (`sys_updated_at`) em que o chamado
+# MAGIC   está em um estado **válido** diferente de "New". A base não tem a data exata do primeiro
+# MAGIC   atendimento, por isso usamos essa aproximação, registrada como limitação do trabalho. O estado
+# MAGIC   inválido `-100` (5 eventos, encontrado na análise de qualidade) não conta como atendimento.
 # MAGIC - **R7 - Pessoas envolvidas:** quantos responsáveis diferentes (`assigned_to`) o chamado teve.
 # MAGIC   Grupos envolvidos: o mesmo, com `assignment_group`. Nulos não são contados.
 # MAGIC - **R8 - Contadores:** reatribuições, reaberturas e atualizações são o **maior** valor registrado,
@@ -197,12 +231,16 @@ print("Chamados (uma linha por chamado):", ultimo_evento.count())
 
 # COMMAND ----------
 
+# Estados válidos que indicam que o chamado já foi pego por alguém (tudo menos "New" e o inválido "-100")
+ESTADOS_ATENDIMENTO = ["Active", "Awaiting User Info", "Awaiting Problem", "Awaiting Vendor",
+                       "Awaiting Evidence", "Resolved", "Closed"]
+
 medidas = (
     prata
     .groupBy("number")
     .agg(
-        # min de sys_updated_at, considerando só as linhas em que o estado não é "New"
-        F.min(F.when(F.col("incident_state") != "New", F.col("sys_updated_at")))
+        # min de sys_updated_at, considerando só as linhas com estado válido e diferente de "New"
+        F.min(F.when(F.col("incident_state").isin(ESTADOS_ATENDIMENTO), F.col("sys_updated_at")))
             .alias("data_hora_primeiro_atendimento"),
         F.countDistinct("assigned_to").alias("qtd_pessoas_envolvidas"),
         F.countDistinct("assignment_group").alias("qtd_grupos_envolvidos"),
@@ -221,8 +259,12 @@ medidas = (
 # MAGIC Juntamos o estado final (célula 6) com as medidas (célula 7) pelo `id_chamado` e calculamos:
 # MAGIC
 # MAGIC - **R9 - Tempos em horas:** diferença entre duas datas, em segundos, dividida por 3.600.
-# MAGIC - **R10 - Resolvido:** o chamado tem data de resolução preenchida.
+# MAGIC - **R10 - Resolvido:** o estado final do chamado é "Resolved" ou "Closed". A análise de qualidade
+# MAGIC   mostrou que 1.556 chamados foram fechados sem data de resolução registrada; eles contam como
+# MAGIC   resolvidos, mas ficam sem `horas_ate_resolucao` (nulo), porque não sabemos quando foram resolvidos.
 # MAGIC - **R11 - Reaberto:** o chamado tem pelo menos uma reabertura.
+# MAGIC - **R13 - Tempos negativos viram nulo:** um tempo menor que zero é impossível (atendimento antes
+# MAGIC   da abertura). A análise de qualidade encontrou 2 casos; eles ficam nulos e não entram nas médias.
 
 # COMMAND ----------
 
@@ -237,7 +279,13 @@ chamados = (
                 F.round(horas_entre("data_hora_abertura", "data_hora_primeiro_atendimento"), 2))
     .withColumn("horas_ate_resolucao",
                 F.round(horas_entre("data_hora_abertura", "data_hora_resolucao"), 2))
-    .withColumn("foi_resolvido", F.col("data_hora_resolucao").isNotNull())
+    # R13: tempo negativo é impossível, então vira nulo
+    .withColumn("horas_ate_primeiro_atendimento",
+                F.when(F.col("horas_ate_primeiro_atendimento") >= 0, F.col("horas_ate_primeiro_atendimento")))
+    .withColumn("horas_ate_resolucao",
+                F.when(F.col("horas_ate_resolucao") >= 0, F.col("horas_ate_resolucao")))
+    # R10: resolvido = estado final "Resolved" ou "Closed"
+    .withColumn("foi_resolvido", F.col("estado_final").isin("Resolved", "Closed"))
     .withColumn("foi_reaberto", F.col("qtd_reaberturas") > 0)
 )
 
@@ -342,6 +390,7 @@ salvar(fato_chamado, "fato_chamado")
 # MAGIC    distintos da tabela bruta (24.918).
 # MAGIC 2. `id_chamado` não pode se repetir na fato.
 # MAGIC 3. Todo chamado deve ter prioridade e data de abertura (chaves obrigatórias).
+# MAGIC 4. Quantos eventos duplicados foram removidos pela R12 (célula 4b).
 
 # COMMAND ----------
 
@@ -353,7 +402,8 @@ conferencia = fato.agg(
     F.countDistinct("id_chamado").alias("chamados_distintos_fato"),
     F.sum(F.col("id_prioridade").isNull().cast("int")).alias("sem_prioridade"),
     F.sum(F.col("id_data_abertura").isNull().cast("int")).alias("sem_data_abertura"),
-).withColumn("chamados_na_bronze", F.lit(chamados_bronze))
+).withColumn("chamados_na_bronze", F.lit(chamados_bronze)) \
+ .withColumn("eventos_duplicados_removidos", F.lit(eventos_duplicados_removidos))
 
 display(conferencia)
 

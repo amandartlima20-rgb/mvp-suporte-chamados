@@ -80,6 +80,7 @@ display(df_bruto.limit(10))
 
 # COMMAND ----------
 
+# MAGIC %md
 # MAGIC ## Célula 4 - Adicionar informações de linhagem
 # MAGIC
 # MAGIC Acrescentamos duas colunas que contam **de onde veio** cada linha e **quando** ela foi carregada.

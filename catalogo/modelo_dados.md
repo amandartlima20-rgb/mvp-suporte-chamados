@@ -13,6 +13,7 @@ tabela fato, filtrada ou agrupada por uma dimensão.
 | Camada | Tabela | Conteúdo |
 |---|---|---|
 | Bronze (bruto) | `workspace.suporte.incidentes_bronze` | Cópia fiel do CSV, uma linha por evento |
+| Prata (tratado) | `workspace.suporte.incidentes_prata` | Eventos com `?` convertido em nulo, tipos corrigidos e duplicados removidos |
 | Ouro (modelo estrela) | `fato_chamado` e `dim_*` | Uma linha por chamado, com as medidas já calculadas |
 
 ## Diagrama
@@ -103,6 +104,6 @@ Estas regras serão aplicadas no notebook de Carga (ETL) e explicadas lá:
    em que o estado deixa de ser "New"**. Essa limitação será registrada na autoavaliação.
 3. **Pessoas envolvidas:** número de valores distintos e não vazios de `assigned_to` ao longo de todos os
    eventos do chamado. Grupos envolvidos: o mesmo, com `assignment_group`.
-4. **Resolvido:** chamado com data de resolução preenchida.
+4. **Resolvido:** chamado cujo estado final é "Resolved" ou "Closed" (regra R10 da carga). Chamados resolvidos sem data de resolução ficam com o tempo nulo.
 5. **Valores ausentes:** o texto `?` da fonte é convertido em nulo.
 6. **Datas:** convertidas do texto `d/M/yyyy HH:mm` para data e hora.

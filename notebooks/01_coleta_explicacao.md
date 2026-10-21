@@ -70,9 +70,9 @@ Conta três coisas, que vão para a seção de Coleta do relatório:
 ### Célula 7 - Evidência via SQL
 - Consulta a tabela salva usando SQL puro e mostra 10 linhas com as colunas mais importantes para o
   trabalho: número do chamado, estado, prioridade, abertura, resolução e quantidade de reatribuições.
-- Prova que a tabela está no catálogo e pode ser consultada. Tire um print para a pasta `/evidencias`.
+- Prova que a tabela está no catálogo e pode ser consultada.
 
-## Resumo em uma frase (para a apresentação)
+## Resumo em uma frase 
 "Na coleta, o arquivo original foi enviado ao Databricks e copiado, sem alterações, para
 uma tabela Delta chamada `incidentes_bronze`, com colunas de linhagem que registram a origem e a data da
 carga."

@@ -49,7 +49,7 @@ prioridade. Só entram chamados com data de resolução registrada.
 ### Salvar as respostas
 Grava cada tabela de resposta como uma tabela Delta no schema `suporte`, para ficarem persistidas na nuvem.
 
-## Resumo em uma frase (para a apresentação)
+## Resumo em uma frase
 "Cada pergunta foi respondida com uma consulta SQL sobre o modelo estrela, usando média, mediana e P90
 para os tempos, e a hipótese foi testada comparando o tempo de resolução de chamados com mais e menos
 reatribuições dentro da mesma prioridade."

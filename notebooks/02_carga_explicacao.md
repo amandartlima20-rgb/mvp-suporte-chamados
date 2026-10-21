@@ -81,13 +81,13 @@ um chamado sem categoria continua na tabela (com a chave vazia) em vez de sumir.
 
 ### Célula 11 - Conferência
 Verifica que a carga está correta: a fato deve ter o mesmo número de chamados da tabela bruta (24.918),
-sem repetição de `id_chamado`, e todo chamado precisa ter prioridade e data de abertura. Também mostra quantos eventos duplicados a célula 4b removeu. **Tire um print.**
+sem repetição de `id_chamado`, e todo chamado precisa ter prioridade e data de abertura. Também mostra quantos eventos duplicados a célula 4b removeu.
 
 ### Célula 12 - Evidência via SQL
 Uma consulta que usa o modelo completo (fato + dimensão de prioridade) e já dá uma prévia das respostas:
-chamados, média de horas até a resolução e média de reatribuições por prioridade. **Tire um print.**
+chamados, média de horas até a resolução e média de reatribuições por prioridade. 
 
-## Resumo em uma frase (para a apresentação)
+## Resumo em uma frase 
 "Na carga, os eventos brutos foram limpos (ausentes, datas e números), agrupados em uma linha por chamado
 com os tempos e contagens calculados, e gravados num Esquema Estrela com uma tabela fato e quatro
 dimensões, conferindo que nenhum chamado foi perdido."

@@ -54,7 +54,7 @@ período os dados cobrem.
 Junta todas as verificações numa tabela com dimensão, verificação, quantidade e porcentagem, e grava
 como `qualidade_resultado`. É o principal print de evidência desta etapa.
 
-## Resumo em uma frase (para a apresentação)
+## Resumo em uma frase 
 "Antes de analisar, verificamos cada atributo em seis dimensões de qualidade (completude, unicidade,
 conformidade, consistência, acurácia e atualidade) e registramos quantos registros tinham cada tipo de
 problema, para decidir como tratá-los nas respostas."
